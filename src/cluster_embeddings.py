@@ -15,12 +15,6 @@ import os
 import shutil
 
 
-def load_config(config_file='config.yaml'):
-    """Load configuration from YAML file"""
-    with open(config_file, 'r') as f:
-        config = yaml.safe_load(f)
-    return config
-
 
 def load_embeddings_from_json(json_file):
     print(f"Loading embeddings from: {json_file}")
@@ -36,11 +30,6 @@ def load_embeddings_from_json(json_file):
 
 
 def perform_dbscan_clustering(embeddings, eps=0.3, min_samples=3, metric='cosine'):
-    print(f"\nPerforming DBSCAN clustering:")
-    print(f"  - eps (max distance): {eps}")
-    print(f"  - min_samples: {min_samples}")
-    print(f"  - metric: {metric}")
-    
     if metric == 'cosine':
         normalized_embeddings = normalize(embeddings, norm='l2')
         dbscan = DBSCAN(eps=eps, min_samples=min_samples, metric='cosine')
@@ -48,7 +37,6 @@ def perform_dbscan_clustering(embeddings, eps=0.3, min_samples=3, metric='cosine
     else:
         dbscan = DBSCAN(eps=eps, min_samples=min_samples, metric=metric)
         clusters = dbscan.fit_predict(embeddings)
-    
     return clusters
 
 
@@ -233,7 +221,8 @@ def main():
     parser = argparse.ArgumentParser(description="Cluster CLIP embeddings using DBSCAN")
     parser.add_argument('--config', type=str, default='config.yaml', help='Path to configuration file (YAML)')
     args = parser.parse_args()
-    config = load_config(args.config)
+    with open(args.config, 'r') as f:
+        config = yaml.safe_load(f)
     
     # Extract configuration parameters
     input_file = os.path.join(config["main"]["output_dir"], "embeddings", "frame_embeddings.json")

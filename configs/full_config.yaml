@@ -3,8 +3,8 @@ pipeline:
   compute_embeddings: true
   visualize: true
 video:
-  # input_path: ressources/corrupted_video.mp4
-  input_path: shuffled_video.mp4
+  input_path: ressources/corrupted_video.mp4
+  # input_path: shuffled_video.mp4
   frames_dir: /home/lmalartic/Desktop/code_tmp/technical/raw_frames_corrupted_video
   format: jpg
   fps: null

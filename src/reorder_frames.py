@@ -24,17 +24,7 @@ from tqdm import tqdm
 from sklearn.manifold import SpectralEmbedding
 import ot  # Python Optimal Transport (POT)
 
-MAX_SIZE = 150  # Resize longest side to this for flow computation
-# --------------------------------------------------------------------
-# Utility functions
-# --------------------------------------------------------------------
-
-def natural_key(s):
-    """Sort key that handles numeric parts in filenames correctly."""
-    import re
-    return [int(text) if text.isdigit() else text.lower()
-            for text in re.split(r'(\d+)', os.path.basename(s))]
-
+MAX_SIZE = 250  # Resize longest side to this for flow computation
 
 def load_and_resize(img_path, max_side):
     im = cv2.imread(img_path, cv2.IMREAD_COLOR)
@@ -54,7 +44,6 @@ def optical_flow(img1_gray, img2_gray):
         pyr_scale=0.5, levels=3, winsize=15,
         iterations=3, poly_n=5, poly_sigma=1.2, flags=0
     )
-
 
 def warp(img, flow):
     """Warp image using optical flow (forward flow)."""
@@ -148,12 +137,8 @@ def write_frames(order, files, out_dir):
         img = cv2.imread(files[idx], cv2.IMREAD_COLOR)
         out_path = os.path.join(out_dir, f"frame_{t:04d}.png")
         cv2.imwrite(out_path, img)
-    print(f"[✔] Saved reordered frames to: {out_dir}")
+    print(f"Saved reordered frames to: {out_dir}")
 
-
-# --------------------------------------------------------------------
-# Main
-# --------------------------------------------------------------------
 
 def main():
     import argparse
@@ -162,43 +147,41 @@ def main():
     ap.add_argument('--frames', type=str, required=True, help="Path to folder with frames")
     args = ap.parse_args()
 
-    # 1️⃣ Gather files
+    # Gather files
     exts = ("*.png", "*.jpg", "*.jpeg")
     files = []
     for ext in exts:
         files.extend(glob.glob(os.path.join(args.frames, ext)))
     if not files:
         sys.exit("No image files found in folder.")
-    files.sort(key=natural_key)
 
 
-    print(f"[i] Found {len(files)} frames in {args.frames}")
 
-    # 2️⃣ Load & downscale
+    print(f"Found {len(files)} frames in {args.frames}")
+
+    # Load & downscale
     small_frames = [load_and_resize(f, MAX_SIZE) for f in tqdm(files, desc="Loading frames")]
 
-    # 3️⃣ Compute optical flow cost matrix
+    # Compute optical flow cost matrix
     C = build_flow_cost_matrix(small_frames)
 
-    # 4️⃣ Spectral embedding
+    # Spectral embedding
     z = spectral_embedding_1d(C)
 
-    # 5️⃣ OT alignment to timeline
+    # OT alignment to timeline
     bary = sinkhorn_time_alignment(z)
 
-    # 6️⃣ Sort and refine
+    # Sort and refine
     order_init = np.argsort(bary).tolist()
     order_rev = order_init[::-1]
     best, cost_best = two_opt(order_init, C)
     best_rev, cost_rev = two_opt(order_rev, C)
     if cost_rev < cost_best:
         best, cost_best = best_rev, cost_rev
-    print(f"[✔] Recovered order with total flow cost = {cost_best:.4f}")
 
-    # 7️⃣ Save permutation + frames
     perm_path = os.path.join(args.frames, "recovered_permutation.txt")
     np.savetxt(perm_path, best, fmt="%d")
-    print(f"[✔] Saved permutation to {perm_path}")
+    print(f"Saved permutation to {perm_path}")
 
     out_dir = os.path.join(args.frames, "reordered_frames")
     write_frames(best, files, out_dir)

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INPUT_CONFIG="/home/lmalartic/Desktop/code_tmp/technical/configs/full_config.yaml"
+INPUT_CONFIG="configs/full_config.yaml"
 
 # -c flag to override config
 while getopts c: flag; do
@@ -25,6 +25,7 @@ new_output_dir="${OUTPUT_DIR}/run_${now}"
 mkdir -p "$new_output_dir"
 
 cp $INPUT_CONFIG "${new_output_dir}/config.yaml" 
+
 CONFIG_FILE="${new_output_dir}/config.yaml"
 NEW_OUTPUT_DIR="$new_output_dir" yq -y '.main.output_dir = env.NEW_OUTPUT_DIR' "$INPUT_CONFIG" > "$CONFIG_FILE"
 
@@ -36,14 +37,15 @@ tmp="$(mktemp)"
 FRAMES_DIR="$FRAMES_DIR" \
 yq -y '.video.frames_dir = env.FRAMES_DIR' "$CONFIG_FILE" > "$tmp" \
   && mv "$tmp" "$CONFIG_FILE"
+
 echo "Extracting frames from: $VIDEO_FILE"
 echo "Output directory: ${new_output_dir}/frames"
 ffmpeg -hide_banner -loglevel error -stats \
   -i "$VIDEO_FILE" -qscale:v 2 "${new_output_dir}/frames/raw_frames_%04d.jpg"
 FRAME_COUNT=$(ls -1 "${new_output_dir}/frames" | wc -l)
 echo "Successfully extracted $FRAME_COUNT frames to ${new_output_dir}/frames"
-# Display the config 
-
+# Display the config
+# cat "$CONFIG_FILE"
 echo "Using config file: $CONFIG_FILE"
 # Compute embeddings and visualize
 mkdir -p "${new_output_dir}/embeddings"

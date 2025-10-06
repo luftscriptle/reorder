@@ -125,6 +125,7 @@ def reduce_dimensions(embeddings, method='tsne', n_components=2):
     else:
         raise ValueError(f"Unknown method: {method}")
     
+    
     return reduced
 
 
@@ -136,9 +137,6 @@ def create_visualization(reduced_embeddings, filenames, method='tsne', output_fi
     
     scatter = ax.scatter(x, y, c=range(len(x)), cmap='viridis', s=100, alpha=0.7)
     
-    for i, (xi, yi, fname) in enumerate(zip(x, y, filenames)):
-        frame_num = fname.replace('frame_', '').replace('.jpg', '').replace('.png', '')
-        ax.annotate(frame_num, (xi, yi), fontsize=8, ha='center', va='bottom')
     
     plt.colorbar(scatter, ax=ax, label='Frame sequence')
     ax.set_xlabel(f'{method.upper()} Component 1')
@@ -181,6 +179,7 @@ def run_pipeline(config):
     embeddings, filenames = compute_embeddings(config)
     
     visualize_embeddings(embeddings, filenames, config)
+
     save_embeddings(embeddings, filenames, os.path.join(config['main']['output_dir'], "embeddings", "frame_embeddings.json"))
     
     print("\nPipeline completed successfully!")
