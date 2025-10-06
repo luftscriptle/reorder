@@ -1,0 +1,37 @@
+pipeline:
+  extract_frames: true
+  compute_embeddings: true
+  visualize: true
+video:
+  # input_path: ressources/corrupted_video.mp4
+  input_path: shuffled_video.mp4
+  frames_dir: /home/lmalartic/Desktop/code_tmp/technical/raw_frames_corrupted_video
+  format: jpg
+  fps: null
+  image_extensions:
+    - .jpg
+    - .jpeg
+    - .png
+embedding:
+  model_name: "ViT-B/16"
+  batch_size: 8
+  device: "cuda"
+  normalize_embeddings: true
+  pca_components: null
+  random_seed: 42
+  num_workers: 4
+visualization:
+  methods:
+    - tsne
+    - umap
+    - pca
+clustering:
+  eps: 0.1
+  min_samples: 5
+  cluster_selection_epsilon: 0.0
+  metric: cosine
+  random_seed: 42
+
+main:
+  output_dir: /home/lmalartic/Desktop/code_tmp/technical/outputs
+  embeddings_file: null
