@@ -1,0 +1,12 @@
+opencv-python
+numpy
+scikit-learn
+POT
+tqdm
+torch
+clip-by-openai
+Pillow
+matplotlib
+pyyaml
+umap-learn
+yq
